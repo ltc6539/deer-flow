@@ -9,6 +9,7 @@ import {
   Undo2,
   X,
   Download,
+  FileText,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
@@ -21,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { useReplay } from "~/core/replay";
 import { closeResearch, listenToPodcast, useStore } from "~/core/store";
 import { cn } from "~/lib/utils";
-import { generatePPT } from "~/core/api";
+import { generatePPT } from "~/core/api/ppt";
 
 import { ResearchActivitiesBlock } from "./research-activities-block";
 import { ResearchReportBlock } from "./research-report-block";
@@ -112,6 +113,35 @@ export function ResearchBlock({
     }
   }, [hasReport, researchId]);
 
+  const [pptUrl, setPptUrl] = useState<string | null>(null);
+  const [pptLoading, setPptLoading] = useState(false);
+  const [pptError, setPptError] = useState<string | null>(null);
+
+  const handleGeneratePPT = useCallback(async () => {
+    if (!reportId) return;
+    const report = useStore.getState().messages.get(reportId);
+    if (!report || !report.content) return;
+    setPptLoading(true);
+    setPptError(null);
+    try {
+      const url = await generatePPT(report.content);
+      // 自动下载
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "research-report.pptx";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 0);
+    } catch (e: any) {
+      setPptError(e.message || "生成PPT失败");
+    } finally {
+      setPptLoading(false);
+    }
+  }, [reportId]);
+
   return (
     <div className={cn("h-full w-full", className)}>
       <Card className={cn("relative h-full w-full pt-4", className)}>
@@ -129,6 +159,24 @@ export function ResearchBlock({
                   <Headphones />
                 </Button>
               </Tooltip>
+              <Tooltip title={"生成PPT"}>
+                <Button
+                  className="text-gray-400"
+                  size="icon"
+                  variant="ghost"
+                  disabled={isReplay || pptLoading}
+                  onClick={handleGeneratePPT}
+                >
+                  {pptLoading ? (
+                    <span className="animate-spin">⏳</span>
+                  ) : (
+                    <FileText />
+                  )}
+                </Button>
+              </Tooltip>
+              {pptError && (
+                <span style={{ color: 'red', marginLeft: 8 }}>{pptError}</span>
+              )}
               <Tooltip title={t("edit")}>
                 <Button
                   className="text-gray-400"
