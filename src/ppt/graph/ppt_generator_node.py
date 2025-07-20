@@ -18,7 +18,7 @@ def ppt_generator_node(state: PPTState):
     generated_file_path = os.path.join(
         os.getcwd(), f"generated_ppt_{uuid.uuid4()}.pptx"
     )
-    subprocess.run(["marp", state["ppt_file_path"], "-o", generated_file_path])
+    subprocess.run(["D:\\npm-global\\marp.cmd", state["ppt_file_path"], "-o", generated_file_path])
     # remove the temp file
     os.remove(state["ppt_file_path"])
     logger.info(f"generated_file_path: {generated_file_path}")

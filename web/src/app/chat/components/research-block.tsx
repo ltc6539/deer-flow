@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
 // SPDX-License-Identifier: MIT
 
-import { Check, Copy, Headphones, Pencil, Undo2, X, Download } from "lucide-react";
+import { Check, Copy, Headphones, Pencil, Undo2, X, Download, FileText } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { ScrollContainer } from "~/components/deer-flow/scroll-container";
@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { useReplay } from "~/core/replay";
 import { closeResearch, listenToPodcast, useStore } from "~/core/store";
 import { cn } from "~/lib/utils";
+import { generatePPT } from "~/core/api";
 
 import { ResearchActivitiesBlock } from "./research-activities-block";
 import { ResearchReportBlock } from "./research-report-block";
@@ -117,6 +118,39 @@ export function ResearchBlock({
                   onClick={handleGeneratePodcast}
                 >
                   <Headphones />
+                </Button>
+              </Tooltip>
+              <Tooltip title="Generate PPT">
+                <Button
+                  className="text-gray-400"
+                  size="icon"
+                  variant="ghost"
+                  disabled={isReplay}
+                  onClick={async () => {
+                    if (!reportId) return;
+                    const report = useStore.getState().messages.get(reportId);
+                    if (!report) return;
+                    try {
+                      const pptUrl = await generatePPT(report.content);
+                      const now = new Date();
+                      const pad = (n: number) => n.toString().padStart(2, '0');
+                      const timestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+                      const filename = `research-report-${timestamp}.pptx`;
+                      const a = document.createElement('a');
+                      a.href = pptUrl;
+                      a.download = filename;
+                      document.body.appendChild(a);
+                      a.click();
+                      setTimeout(() => {
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(pptUrl);
+                      }, 0);
+                    } catch (e) {
+                      alert('PPT生成失败，请稍后重试');
+                    }
+                  }}
+                >
+                  <FileText />
                 </Button>
               </Tooltip>
               <Tooltip title="Edit">
