@@ -1,7 +1,16 @@
 // Copyright (c) 2025 Bytedance Ltd. and/or its affiliates
 // SPDX-License-Identifier: MIT
 
-import { Check, Copy, Headphones, Pencil, Undo2, X, Download, FileText } from "lucide-react";
+import {
+  Check,
+  Copy,
+  Headphones,
+  Pencil,
+  Undo2,
+  X,
+  Download,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 
 import { ScrollContainer } from "~/components/deer-flow/scroll-container";
@@ -24,6 +33,7 @@ export function ResearchBlock({
   className?: string;
   researchId: string | null;
 }) {
+  const t = useTranslations("chat.research");
   const reportId = useStore((state) =>
     researchId ? state.researchReportIds.get(researchId) : undefined,
   );
@@ -75,12 +85,12 @@ export function ResearchBlock({
       return;
     }
     const now = new Date();
-    const pad = (n: number) => n.toString().padStart(2, '0');
+    const pad = (n: number) => n.toString().padStart(2, "0");
     const timestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
     const filename = `research-report-${timestamp}.md`;
-    const blob = new Blob([report.content], { type: 'text/markdown' });
+    const blob = new Blob([report.content], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
@@ -91,7 +101,6 @@ export function ResearchBlock({
     }, 0);
   }, [reportId]);
 
-    
   const handleEdit = useCallback(() => {
     setEditing((editing) => !editing);
   }, []);
@@ -109,7 +118,7 @@ export function ResearchBlock({
         <div className="absolute right-4 flex h-9 items-center justify-center">
           {hasReport && !reportStreaming && (
             <>
-              <Tooltip title="Generate podcast">
+              <Tooltip title={t("generatePodcast")}>
                 <Button
                   className="text-gray-400"
                   size="icon"
@@ -120,40 +129,7 @@ export function ResearchBlock({
                   <Headphones />
                 </Button>
               </Tooltip>
-              <Tooltip title="Generate PPT">
-                <Button
-                  className="text-gray-400"
-                  size="icon"
-                  variant="ghost"
-                  disabled={isReplay}
-                  onClick={async () => {
-                    if (!reportId) return;
-                    const report = useStore.getState().messages.get(reportId);
-                    if (!report) return;
-                    try {
-                      const pptUrl = await generatePPT(report.content);
-                      const now = new Date();
-                      const pad = (n: number) => n.toString().padStart(2, '0');
-                      const timestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
-                      const filename = `research-report-${timestamp}.pptx`;
-                      const a = document.createElement('a');
-                      a.href = pptUrl;
-                      a.download = filename;
-                      document.body.appendChild(a);
-                      a.click();
-                      setTimeout(() => {
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(pptUrl);
-                      }, 0);
-                    } catch (e) {
-                      alert('PPT生成失败，请稍后重试');
-                    }
-                  }}
-                >
-                  <FileText />
-                </Button>
-              </Tooltip>
-              <Tooltip title="Edit">
+              <Tooltip title={t("edit")}>
                 <Button
                   className="text-gray-400"
                   size="icon"
@@ -164,7 +140,7 @@ export function ResearchBlock({
                   {editing ? <Undo2 /> : <Pencil />}
                 </Button>
               </Tooltip>
-              <Tooltip title="Copy">
+              <Tooltip title={t("copy")}>
                 <Button
                   className="text-gray-400"
                   size="icon"
@@ -174,7 +150,7 @@ export function ResearchBlock({
                   {copied ? <Check /> : <Copy />}
                 </Button>
               </Tooltip>
-              <Tooltip title="Download report as markdown">
+              <Tooltip title={t("downloadReport")}>
                 <Button
                   className="text-gray-400"
                   size="icon"
@@ -186,7 +162,7 @@ export function ResearchBlock({
               </Tooltip>
             </>
           )}
-          <Tooltip title="Close">
+          <Tooltip title={t("close")}>
             <Button
               className="text-gray-400"
               size="sm"
@@ -211,10 +187,10 @@ export function ResearchBlock({
                 value="report"
                 disabled={!hasReport}
               >
-                Report
+                {t("report")}
               </TabsTrigger>
               <TabsTrigger className="px-8" value="activities">
-                Activities
+                {t("activities")}
               </TabsTrigger>
             </TabsList>
           </div>
